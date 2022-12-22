@@ -28,7 +28,7 @@ class buzzer(commands.Cog):
         """
         fullans = ""
         for item in answer:
-            fullans +=item
+            fullans +=item + " "
         if univ.data[ctx.guild]["channel"] == ctx.channel:
             if univ.data[ctx.guild]["Question"].answering == ctx.author.id:
                 await univ.data[ctx.guild]["Question"].validate(fullans)
@@ -71,7 +71,7 @@ class buzzer(commands.Cog):
 
 class question(discord.ui.View):
     def __init__(self,ctx,number,type,category,choice_type,source,question,answer,speed, bonus = False):
-        super().__init__(timeout=15.0)
+        super().__init__(timeout = None)
         self.bonus = bonus
         self.ctx = ctx
         self.number = number
@@ -114,7 +114,10 @@ class question(discord.ui.View):
                 """Do nothing"""
         except:
             """Do nothing"""
-        answers.append(x)
+
+        #remove spaces
+        x = self.answer
+        answers.append(x.strip())
 
         return answers
 
@@ -169,7 +172,7 @@ class question(discord.ui.View):
         if self.answered:
             await self.updateEmbed("Question has expired")
         else:
-            await self.updateEmbed(f"<t:{self.timeleftUNIX}:R>")
+            await self.updateEmbed(f"<t:{self.timeleftUNIX}:R>",beRed= True)
         
     async def validate(self,ans):
         self.BuzzData += ans+ " - "
@@ -185,7 +188,7 @@ class question(discord.ui.View):
         if self.answered:
             await self.updateEmbed("Question has expired")
         else:
-            await self.updateEmbed(f"<t:{self.timeleftUNIX}:R>")
+            await self.updateEmbed(f"<t:{self.timeleftUNIX}:R>",beRed=True)
 
     async def sendquestion(self, ctx,type, choice_type, source, question, answer,speed):
         self.message = await self.ctx.send(embed = self.embed)
