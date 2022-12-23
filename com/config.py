@@ -4,7 +4,16 @@ from discord.ext import commands
 async def setup(bot):
 	
 	await bot.add_cog(Misc(bot))
+class buttons(discord.ui.View):
+		def __init__(self, oninteraction,timeout=180):
+			super().__init__(timeout=timeout)
+			global result
+			result = oninteraction
 
+		@discord.ui.button(label="MORE",style=discord.ButtonStyle.gray)
+		async def blurple_button(self,button:discord.ui.Button,interaction:discord.Interaction):
+			interaction.response.defer()
+			await button.message.edit(embed= result,view=self)
 class Misc(commands.Cog):
 	"""
 	Miscilaneaous
@@ -26,7 +35,7 @@ class Misc(commands.Cog):
 		embed2 = embed.copy()
 		embed2.add_field(name = "For Nerds", value = f"Your message was created at {ctx.message.created_at} \nOur message was created at the time {t.created_at}, with the gap being {ms} ms \nOur internet delay time is {round(self.client.latency * 1000)} ms\nYour lag should be about {ms - round(self.client.latency * 1000)} ms")
 
-		await t.edit(content = "", embed=embed, view = univ.buttons(embed2))
+		await t.edit(content = "", embed=embed, view = buttons(embed2))
         
 
 	@commands.command()
