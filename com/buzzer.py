@@ -260,6 +260,10 @@ class question(discord.ui.View):
             self.progress = False
         self.BuzzData += stuff
         self.answering = interaction.user.id
+        if self.timeleftUNIX <= time.time():
+            return await interaction.response.send_message(
+                "Time over",
+                ephemeral=True) 
 
         if self.type == "TOSSUP":
             if self.mc:
@@ -341,10 +345,13 @@ class McButton(discord.ui.Button):
 
     
     async def callback(self, interaction):
-        await interaction.response.defer()
         if interaction.user.id != self.author:
             return await interaction.response.send_message(
                 "You didn't buzz. Somebody else did.",
                 ephemeral=True)
-
+        if self.view.timeleftUnix <= time.time():
+            return await interaction.response.send_message(
+                "Time over",
+                ephemeral=True) 
+        await interaction.response.defer()
         await self.view.validateMC(self)
