@@ -20,6 +20,7 @@ async def setup_hook(self):
     await self.load_extension('jishaku')
     try:
         await self.load_extension('com.buzzer')
+        await self.load_extension('com.config')
     except Exception as e:
             raise e
 
