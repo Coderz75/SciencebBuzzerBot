@@ -19,7 +19,9 @@ async def setup(bot):
 
 
 class buzzer(commands.Cog):
-    """Buzzer"""
+    """
+    Everything you need to do you science bowl round!
+    """
     def __init__(self, bot):
         self.client = bot
 

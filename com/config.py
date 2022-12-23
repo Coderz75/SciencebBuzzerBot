@@ -3,15 +3,31 @@ from discord.ext import commands
 
 async def setup(bot):
 	
-	await bot.add_cog(cf(bot))
+	await bot.add_cog(Misc(bot))
 
-class cf(commands.Cog):
-	"""Configuration + Info"""
+class Misc(commands.Cog):
+	"""
+	Miscilaneaous
+	"""
 
 	def __init__(self, bot):
 		self.client = bot
 		self.bot = bot
 		self.version = 1
+		
+	@commands.hybrid_command()
+	async def ping(self, ctx):
+		t = await ctx.channel.send('Pong!')
+		ms = (t.created_at-ctx.message.created_at).total_seconds() * 1000
+		embed = discord.Embed(title = "Pong", description = f"Pong, what else? \nOur client delay time was about {round(self.client.latency * 1000)} ms\nYour lag should be about {ms - round(self.client.latency * 1000)} ms\nTotal time taken was {ms}\n")
+		embed.set_thumbnail(url="https://www.publicdomainpictures.net/pictures/350000/nahled/paddle-bat-ping-pong.png")
+		embed.set_footer(text=f"Running on version {self.version}.\nDiscord py version: {discord.__version__}\nResponded in {round(self.client.latency * 1000)} ms\nPS:	press MORE for more info")
+		embed.set_author(name= "Requested by: " +ctx.author.display_name, icon_url=ctx.author.avatar)
+		embed2 = embed.copy()
+		embed2.add_field(name = "For Nerds", value = f"Your message was created at {ctx.message.created_at} \nOur message was created at the time {t.created_at}, with the gap being {ms} ms \nOur internet delay time is {round(self.client.latency * 1000)} ms\nYour lag should be about {ms - round(self.client.latency * 1000)} ms")
+
+		await t.edit(content = "", embed=embed, view = univ.buttons(embed2))
+        
 
 	@commands.command()
 	async def help(self, ctx, *args):
