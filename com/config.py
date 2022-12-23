@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 async def setup(bot):
+	
 	await bot.add_cog(cf(bot))
 
 class cf(commands.Cog):
@@ -10,12 +11,13 @@ class cf(commands.Cog):
 	def __init__(self, bot):
 		self.client = bot
 		self.bot = bot
+		self.version = 1
 
 	@commands.hybrid_command()
 	async def help(self, ctx, *args):
 		"""Sends this message"""
 		prefix = "!"
-		owner = univ.dev
+		owner = 754532384984137772
 		async def predicate(cmd):
 				try:
 					return await cmd.can_run(ctx)
@@ -26,7 +28,7 @@ class cf(commands.Cog):
 				owner = ctx.guild.get_member(owner).mention
 
 			except AttributeError as e:
-				owner = univ.dev_name
+				owner = "pulsar|not|black_hole#5039"
 
 			embed = discord.Embed(title = "Help", description = f'Use `{prefix}help <module>` to gain more information about that module ')
 			cogs_desc = ''
@@ -77,7 +79,7 @@ class cf(commands.Cog):
 		elif len(args) > 1:
 			embed = discord.Embed(title = "Chill", description = "Im not a search engine dude, one module at a time")
 
-		embed.set_footer(text=f"Running on version {univ.version}.\nDiscord py version: {discord.__version__}\nResponded in {round(self.client.latency * 1000)} ms")
+		embed.set_footer(text=f"Running on version {self.version}.\nDiscord py version: {discord.__version__}\nResponded in {round(self.client.latency * 1000)} ms")
 		embed.set_author(name= "Requested by: " +ctx.author.display_name, icon_url=ctx.author.avatar)
 
 		await ctx.channel.send(embed=embed)
