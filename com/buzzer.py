@@ -210,7 +210,7 @@ class question(discord.ui.View):
         
 
         if type == "TOSSUP":
-            self.timeleftUNIX = int(time.time() + 10)
+            self.timeleftUNIX = int(time.time() + 5)
         else:
             self.timeleftUNIX = int(time.time() +20)
 
@@ -349,7 +349,7 @@ class McButton(discord.ui.Button):
             return await interaction.response.send_message(
                 "You didn't buzz. Somebody else did.",
                 ephemeral=True)
-        if self.view.timeleftUnix <= time.time():
+        if self.view.timeleftUNIX <= time.time():
             return await interaction.response.send_message(
                 "Time over",
                 ephemeral=True) 
