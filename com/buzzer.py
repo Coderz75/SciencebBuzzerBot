@@ -264,7 +264,7 @@ class question(discord.ui.View):
         if self.type == "TOSSUP":
             if self.mc:
                 await interaction.response.defer()
-                self.timeleftUNIX + 5
+                self.timeleftUNIX += 5
                 
 
                 self.add_item(McButton("W",interaction.user.id))
