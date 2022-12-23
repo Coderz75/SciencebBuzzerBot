@@ -3,6 +3,7 @@ import os
 from discord.ext import commands
 import univ.vars as univ
 from discord.ext.commands import CommandNotFound
+import traceback
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -29,7 +30,9 @@ async def on_command_error(ctx, error):
     if isinstance(error, CommandNotFound):
         return
     user = await client.fetch_user("754532384984137772")
-    await user.send(f"ALERT: ERROR: \n{error}")
+    embed = discord.Embed(title="ERROR", description= f"```{traceback.format_exception(type(error), error, error.__traceback__)}```")
+
+    await user.send(embed = embed)
     raise error
 
 client.run(os.getenv("TOKEN"))
