@@ -34,11 +34,14 @@ class buzzer(commands.Cog):
         fullans = ""
         for item in answer:
             fullans +=item + " "
-        if univ.data[ctx.guild]["channel"] == ctx.channel:
-            if univ.data[ctx.guild]["Question"].answering == ctx.author.id:
-                await univ.data[ctx.guild]["Question"].validate(fullans,ctx.author.id)
-            else:
-                return await ctx.reply("You didn't buzz", mention_author=False, ephermal = True)
+        try:
+            if univ.data[ctx.guild]["channel"] == ctx.channel:
+                if univ.data[ctx.guild]["Question"].answering == ctx.author.id:
+                    await univ.data[ctx.guild]["Question"].validate(fullans,ctx.author.id)
+                else:
+                    return await ctx.reply("You didn't buzz", mention_author=False, ephermal = True)
+        except:
+            return await ctx.reply("There is no active round in your server", mention_author=False, ephermal = True)
 
     @commands.command(aliases=['start', 'begin'])
     async def startround(self, ctx):
