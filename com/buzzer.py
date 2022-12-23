@@ -101,7 +101,7 @@ class question(discord.ui.View):
         answers.append(re.sub("[\(\[].*?[\)\]]", "", x))
 
         #get accepted answer
-        x = self.answer
+        x = self.answer.upper()
         try:
             x = x.split("(ACCEPT: ",1)[1]
             try:
@@ -116,7 +116,7 @@ class question(discord.ui.View):
             """Do nothing"""
 
         #remove spaces
-        x = self.answer
+        x = self.answer.upper()
         answers.append(x.strip())
 
         return answers
@@ -174,12 +174,12 @@ class question(discord.ui.View):
         else:
             await self.updateEmbed(f"<t:{self.timeleftUNIX}:R>",beRed= True)
         
-    async def validate(self,ans):
+    async def validate(self,ans,author):
         self.BuzzData += ans+ " - "
         if ans.upper() in self.answer_list:
             self.BuzzData += "**Correct!**"
             self.answered = True 
-            self.CorrectMan = ans.author
+            self.CorrectMan = author
         else:
             self.BuzzData += "**Incorrect**\n"
             self.progress = True
