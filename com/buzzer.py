@@ -6,6 +6,9 @@ import time
 import univ.vars as univ
 import asyncio
 import re
+import random
+
+
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -31,12 +34,13 @@ class buzzer(commands.Cog):
             fullans +=item + " "
         if univ.data[ctx.guild]["channel"] == ctx.channel:
             if univ.data[ctx.guild]["Question"].answering == ctx.author.id:
-                await univ.data[ctx.guild]["Question"].validate(fullans)
+                await univ.data[ctx.guild]["Question"].validate(fullans,ctx.author.id)
             else:
                 return await ctx.reply("You didn't buzz", mention_author=False, ephermal = True)
 
     @commands.command(aliases=['start', 'begin'])
     async def startround(self, ctx):
+
         if ctx.guild not in univ.data:
             e = {
                 "channel" : ctx.channel,
@@ -48,8 +52,11 @@ class buzzer(commands.Cog):
 
                 if ctx.guild not in univ.data:
                     break
-                data= json.loads((requests.get("https://scibowldb.com/api/questions/random")).text)
-                data = json.loads(json.dumps(data['question']))
+                f = open("questions/questions.json")
+                data = json.load(f)
+                i = random.randint(0,len(data["questions"]))
+
+                data = json.loads(json.dumps(data['questions'][i]))
 
                 univ.data[ctx.guild]["Question"] = question(ctx,i+1, "TOSSUP",str(data['category']), str(data['tossup_format']), str(data['uri']), str(data['tossup_question']), str(data['tossup_answer']),1)
                 await univ.data[ctx.guild]["Question"].run()
@@ -139,11 +146,11 @@ class question(discord.ui.View):
 
     async def updateEmbed(self,Timeleft, showans = False, beRed = False):
         if self.answered:
-            self.embed = discord.Embed(title=f"{self.number}) {self.category} {self.type} {self.choice_type}", description=f"(SOURCE: {self.source} \nType buzz to buzz)", color=0x00FF00)
+            self.embed = discord.Embed(title=f"{self.number}) {self.category} {self.type} {self.choice_type}", description=f"(SOURCE: {self.source} \nPress buzz to buzz)", color=0x00FF00)
         elif beRed:
-            self.embed = discord.Embed(title=f"{self.number}) {self.category} {self.type} {self.choice_type}", description=f"(SOURCE: {self.source} \nType buzz to buzz)", color=0xFF0000)
+            self.embed = discord.Embed(title=f"{self.number}) {self.category} {self.type} {self.choice_type}", description=f"(SOURCE: {self.source} \nPress buzz to buzz)", color=0xFF0000)
         else:
-            self.embed = discord.Embed(title=f"{self.number}) {self.category} {self.type} {self.choice_type}", description=f"(SOURCE: {self.source} \nType buzz to buzz)", color=0xFF5733)
+            self.embed = discord.Embed(title=f"{self.number}) {self.category} {self.type} {self.choice_type}", description=f"(SOURCE: {self.source} \nPress buzz to buzz)", color=0xFF5733)
         self.embed.add_field(name="Question", value=f"{self.typed_question}", inline=False)
         self.embed.add_field(name="Buzz's:", value=f"{self.BuzzData}", inline=False)
         self.embed.add_field(name="TimeLeft", value=f"{Timeleft}.", inline=True)
@@ -336,4 +343,3 @@ class McButton(discord.ui.Button):
                 ephemeral=True)
 
         await self.view.validateMC(self)
-        await interaction.response.edit_message(view=self.view.view)
