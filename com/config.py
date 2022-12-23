@@ -11,9 +11,9 @@ class buttons(discord.ui.View):
 			result = oninteraction
 
 		@discord.ui.button(label="MORE",style=discord.ButtonStyle.gray)
-		async def blurple_button(self,button:discord.ui.Button,interaction:discord.Interaction):
-			interaction.response.defer()
-			await button.message.edit(embed= result,view=self)
+		async def blurple_button(self,interaction:discord.Interaction,button):
+
+			await interaction.message.edit(embed= result,view=self)
 class Misc(commands.Cog):
 	"""
 	Miscilaneaous
