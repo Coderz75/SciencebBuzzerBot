@@ -13,7 +13,7 @@ class cf(commands.Cog):
 		self.bot = bot
 		self.version = 1
 
-	@commands.hybrid_command()
+	@commands.command()
 	async def help(self, ctx, *args):
 		"""Sends this message"""
 		prefix = "!"
@@ -33,7 +33,8 @@ class cf(commands.Cog):
 			embed = discord.Embed(title = "Help", description = f'Use `{prefix}help <module>` to gain more information about that module ')
 			cogs_desc = ''
 			for module in self.client.cogs:
-				cogs_desc += f'`{module}` {self.bot.cogs[module].__doc__}\n'
+				if str(module) != "Jishaku":
+					cogs_desc += f'`{module}` {self.bot.cogs[module].__doc__}\n'
 
             # adding 'list' of cogs to embed
 			embed.add_field(name='Modules', value=cogs_desc, inline=False)
@@ -49,7 +50,7 @@ class cf(commands.Cog):
 			if commands_desc:
 				embed.add_field(name='Not belonging to a module', value=commands_desc, inline=False)
 
-			embed.add_field(name='About', value=f"{self.client.get_user(self.client.user.id)} is devoloped by {owner} \nFind out private policy at ```{prefix}policy```", inline=False)
+			embed.add_field(name='About', value=f"{self.client.get_user(self.client.user.id)} is devoloped by {owner}", inline=False)
 		elif len(args) == 1:
 
             # iterating trough cogs
