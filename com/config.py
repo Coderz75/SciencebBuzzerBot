@@ -37,10 +37,10 @@ class Misc(commands.Cog):
 
 		await t.edit(content = "", embed=embed, view = buttons(embed2))
         
-
 	@commands.command()
 	async def help(self, ctx, *args):
 		"""Sends this message"""
+		global cogs_desc
 		prefix = "!"
 		owner = 754532384984137772
 		async def predicate(cmd):
@@ -59,7 +59,11 @@ class Misc(commands.Cog):
 			cogs_desc = ''
 			for module in self.client.cogs:
 				if str(module) != "Jishaku":
-					cogs_desc += f'`{module}` {self.bot.cogs[module].__doc__}\n'
+					cogs_desc += f'`{module}` {self.bot.cogs[module].__doc__}'
+					for y in self.client.commands:
+						if y.cog and y.cog.qualified_name == str(module):
+							cogs_desc += "    - " + y.name 
+					cogs_desc += "\n"
 
             # adding 'list' of cogs to embed
 			embed.add_field(name='Modules', value=cogs_desc, inline=False)
