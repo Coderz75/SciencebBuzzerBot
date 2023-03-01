@@ -49,7 +49,8 @@ class buzzer(commands.Cog):
         if ctx.guild not in univ.data:
             e = {
                 "channel" : ctx.channel,
-                "buzzData" : ""
+                "buzzData" : "",
+                "lb": {}
             }
             univ.data[ctx.guild] = e
 
@@ -63,15 +64,58 @@ class buzzer(commands.Cog):
 
                 data = json.loads(json.dumps(data['questions'][i]))
 
-                univ.data[ctx.guild]["Question"] = question(ctx,i+1, "TOSSUP",str(data['category']), str(data['tossup_format']), str(data['uri']), str(data['tossup_question']), str(data['tossup_answer']),1)
+                univ.data[ctx.guild]["Question"] = question(ctx,i+1, "TOSSUP",str(data['category']), str(data['tossup_format']), str(data['uri']), str(data['tossup_question']), str(data['tossup_answer']),1,ctx.author.id)
                 await univ.data[ctx.guild]["Question"].run()
                 try:
                     ans, CorrectMan = await univ.data[ctx.guild]["Question"].cleanup()
                 except: 
                     """Do nothing"""
-                await asyncio.sleep(2)
+                if CorrectMan != False:
+                    if CorrectMan in univ.data[ctx.guild]["lb"]:
+                        univ.data[ctx.guild]["lb"][CorrectMan] += 4
+                    else:
+                        univ.data[ctx.guild]["lb"][CorrectMan] = 4
 
+                await asyncio.sleep(1)
+
+            scores = []
+            a = []
+            try:
+                for key, value in univ.data[ctx.guild]["lb"].items():
+                    scores.append(value)
+                scores.sort(reverse=True)
+                for i in range(len(scores)):
+                    for key,value in univ.data[ctx.guild]["lb"].items():
+                        if scores[i] == value:
+                            a.append(key)
+                for i in range(3):
+                    a.append("No one")
+                    scores.append(0)
                 
+                desc = f"""
+                :first_place: **<@!{a[0]}>** - **{scores[0]}**
+                :second_place: **<@!{a[1]}>** - **{scores[1]}**
+                :third_place: **<@!{a[2]}>** - **{scores[2]}**
+                """
+                for i in range(3):
+                    del scores[0]
+                    del a[0]
+
+                for i in range(len(scores)):
+                    if a[i] != "No one":
+                        desc += f":medal: **<@!{a[i]}>** - **{scores[i]}**\n"
+
+                embed = discord.Embed(title=f"End, it's over", description=desc, color=0x00FF00)
+                embed.set_author(name="Requested by: " + ctx.author.display_name,
+                        icon_url=ctx.author.avatar)
+                embed.set_thumbnail(
+                url=
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Twemoji2_1f947.svg/512px-Twemoji2_1f947.svg.png?20170615234944"
+                )
+                await ctx.send(embed=embed)
+            except :
+                pass
+
             try:
                 univ.data.pop(ctx.guild)   
             except:
@@ -82,7 +126,7 @@ class buzzer(commands.Cog):
 
 
 class question(discord.ui.View):
-    def __init__(self,ctx,number,type,category,choice_type,source,question,answer,speed, bonus = False):
+    def __init__(self,ctx,number,type,category,choice_type,source,question,answer,speed, owner,bonus = False):
         super().__init__(timeout = None)
         self.bonus = bonus
         self.ctx = ctx
@@ -102,6 +146,7 @@ class question(discord.ui.View):
         self.progress = True
         self.mc = choice_type == "Multiple Choice"
         self.answering = False
+        self.author = owner
     
     async def getAns(self):
         answers = [self.answer.upper()]
@@ -303,6 +348,7 @@ class question(discord.ui.View):
 
             else:
                 await interaction.response.defer()
+                await interaction.response.send_message(f"Quick! Send `sci!a [answer]` to provide your answer", ephemeral=True)
                 self.timeleftUNIX += int(len(self.answer) * 0.2) + 4
                 await self.updateEmbed(f"<t:{int(time.time() + len(self.answer) * 0.2) + 4}:R>")
 
@@ -329,11 +375,14 @@ class question(discord.ui.View):
     @discord.ui.button(label = "stop", style = discord.ButtonStyle.red)
     async def stop_button(self, interaction: discord.Interaction, button: discord.ui.button):
         try:
-            univ.data.pop(interaction.guild)
+            if interaction.author.id == self.author:
+                univ.data.pop(interaction.guild)
+                self.embed.add_field(name="Stopped", value=f"The round has been stopped. Please wait for the question to finish", inline=False)
+                await self.message.edit(embed = self.embed)
+            else:
+                await interaction.response.send_message("You are not the owner >:(")   
         except:
             """Do nothing"""
-        self.embed.add_field(name="Stopped", value=f"The round has been stopped. Please wait for the question to finish", inline=False)
-        await self.message.edit(embed = self.embed)
         await interaction.response.defer()
 
 class McButton(discord.ui.Button):

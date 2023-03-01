@@ -8,7 +8,7 @@ import traceback
 intents = discord.Intents.default()
 intents.message_content = True
 
-client = commands.Bot(command_prefix = commands.when_mentioned_or('!'), intents=intents, description = "Buzz", help_command=None, activity = discord.Game(name="!help"))
+client = commands.Bot(command_prefix = commands.when_mentioned_or('sci!'), intents=intents, description = "Buzz", help_command=None, activity = discord.Game(name="sci!help"))
 
 
 @client.event
