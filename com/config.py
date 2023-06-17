@@ -27,7 +27,7 @@ class Misc(commands.Cog):
 		
 	@commands.hybrid_command()
 	async def ping(self, ctx):
-		t = await ctx.channel.send('Pong!')
+		t = await ctx.send('Pong!')
 		ms = (t.created_at-ctx.message.created_at).total_seconds() * 1000
 		embed = discord.Embed(title = "Pong", description = f"Pong, what else? \nOur client delay time was about {round(self.client.latency * 1000)} ms\nMy lag should be about {ms - round(self.client.latency * 1000)} ms\nTotal time taken was {ms}\n")
 		embed.set_thumbnail(url="https://www.publicdomainpictures.net/pictures/350000/nahled/paddle-bat-ping-pong.png")
@@ -38,23 +38,22 @@ class Misc(commands.Cog):
 
 		await t.edit(content = "", embed=embed, view = buttons(embed2))
         
-	@commands.command()
-	async def help(self, ctx, *args):
+	@commands.hybrid_command()
+	async def help(self, ctx, module: str = None):
 		"""Sends this message"""
 		global cogs_desc
+		if module == None:
+			args = []
+		else:
+			args = [module]
 		prefix = "sci!"
 		owner = 754532384984137772
 		async def predicate(cmd):
 				try:
 					return await cmd.can_run(ctx)
-				except commands.CommandError:
+				except commands.CommandErroxr:
 					return False
 		if not args:
-			try:
-				owner = ctx.guild.get_member(owner).mention
-
-			except AttributeError as e:
-				owner = "pulsar|not|black_hole#5039"
 
 			embed = discord.Embed(title = "Help", description = f'Use `{prefix}help <module>` to gain more information about that module ')
 			cogs_desc = ''
@@ -80,7 +79,7 @@ class Misc(commands.Cog):
 			if commands_desc:
 				embed.add_field(name='Not belonging to a module', value=commands_desc, inline=False)
 
-			embed.add_field(name='About', value=f"{self.client.get_user(self.client.user.id)} is devoloped by {owner}", inline=False)
+			embed.add_field(name='About', value=f"{self.client.get_user(self.client.user.id)} is devoloped by <@!{owner}>5", inline=False)
 		elif len(args) == 1:
 
             # iterating trough cogs
@@ -113,9 +112,9 @@ class Misc(commands.Cog):
 		embed.set_footer(text=f"Running on version {self.version}.\nDiscord py version: {discord.__version__}\nResponded in {round(self.client.latency * 1000)} ms")
 		embed.set_author(name= "Requested by: " +ctx.author.display_name, icon_url=ctx.author.avatar)
 
-		await ctx.channel.send(embed=embed)
+		await ctx.send(embed=embed)
 
 @commands.hybrid_command(name = "hello")
 async def hello(ctx):
-	"Hello"
+	"""Hello"""
 	await ctx.send("Hello to you my good sir.")

@@ -1,13 +1,15 @@
 import discord
 from discord.ext import commands
-import requests
 import json 
 import time
 import univ.vars as univ
 import asyncio
 import re
 import random
+from difflib import SequenceMatcher
 
+def similar(a, b):
+    return SequenceMatcher(None , a, b).ratio()
 
 
 intents = discord.Intents.default()
@@ -25,25 +27,32 @@ class buzzer(commands.Cog):
     def __init__(self, bot):
         self.client = bot
 
-    @commands.command(aliases = ['a', 'ans'])
-    async def answer(self,ctx, *answer):
+    @commands.hybrid_command()
+    async def a(self,ctx,*, answer: str):
         """
         Answer a question in the round.
         Only if you have buzzed
         """
-        fullans = ""
-        for item in answer:
-            fullans +=item + " "
+        fullans = answer
         try:
             if univ.data[ctx.guild]["channel"] == ctx.channel:
                 if univ.data[ctx.guild]["Question"].answering == ctx.author.id:
                     await univ.data[ctx.guild]["Question"].validate(fullans,ctx.author.id)
                 else:
-                    return await ctx.reply("You didn't buzz", mention_author=False, ephermal = True)
+                    return await ctx.send("You didn't buzz", mention_author=False, ephermal = True)
         except:
-            return await ctx.reply("There is no active round in your server", mention_author=False, ephermal = True)
+            return await ctx.send("There is no active round in your server", mention_author=False, ephermal = True)
 
-    @commands.command(aliases=['start', 'begin'])
+    @commands.hybrid_command()
+    async def reset(self, ctx):
+        "Use this in case it says there is an active round even though there is not"
+        try:
+            univ.data.pop(ctx.guild)
+        except:
+            pass
+        await ctx.send("Done!", ephemeral=True)
+
+    @commands.hybrid_command()
     async def startround(self, ctx):
 
         if ctx.guild not in univ.data:
@@ -233,7 +242,7 @@ class question(discord.ui.View):
         
     async def validate(self,ans,author):
         self.BuzzData += ans+ " - "
-        if ans.upper() in self.answer_list:
+        if ans.upper() in self.answer_list or similar(ans,self.answer_list[1]) > 0.5:
             self.BuzzData += "**Correct!**"
             self.answered = True 
             self.CorrectMan = author
@@ -349,11 +358,11 @@ class question(discord.ui.View):
             else:
                 await interaction.response.defer()
                 await interaction.response.send_message(f"Quick! Send `sci!a [answer]` to provide your answer", ephemeral=True)
-                self.timeleftUNIX += int(len(self.answer) * 0.2) + 4
-                await self.updateEmbed(f"<t:{int(time.time() + len(self.answer) * 0.2) + 4}:R>")
+                self.timeleftUNIX += int(len(self.answer)) + 4
+                await self.updateEmbed(f"<t:{self.timeleftUNIX}:R>")
 
                 oldBuzzData = self.BuzzData
-                await asyncio.sleep(int(len(self.answer) * 0.2) + 4.1)
+                await asyncio.sleep(int(len(self.answer)) + 4.1)
 
                 if str(self.BuzzData) == str(oldBuzzData):
                     self.BuzzData += "**Stall**"
