@@ -30,8 +30,8 @@ class buzzer(commands.Cog):
     @commands.hybrid_command()
     async def a(self,ctx,*, answer: str):
         """
-        Answer a question in the round.
-        Only if you have buzzed
+        Answer a question in the round. (Only if you have buzzed)
+        Usage: {}a [answer]
         """
         fullans = answer
         try:
@@ -45,7 +45,10 @@ class buzzer(commands.Cog):
 
     @commands.hybrid_command()
     async def reset(self, ctx):
-        "Use this in case it says there is an active round even though there is not"
+        """
+        Use this in case it says there is an active round even though there is not
+        Usage: {}reset
+        """
         try:
             univ.data.pop(ctx.guild)
         except:
@@ -54,7 +57,10 @@ class buzzer(commands.Cog):
 
     @commands.hybrid_command()
     async def startround(self, ctx):
-
+        """
+        Start a science bowl round!
+        Usage: {}startround
+        """
         if ctx.guild not in univ.data:
             e = {
                 "channel" : ctx.channel,
