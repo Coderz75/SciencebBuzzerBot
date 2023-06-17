@@ -62,7 +62,7 @@ class buzzer(commands.Cog):
                 "lb": {}
             }
             univ.data[ctx.guild] = e
-
+            await ctx.send("Ok, starting soon!", ephemeral = True)
             for i in range(20):
 
                 if ctx.guild not in univ.data:
@@ -130,7 +130,7 @@ class buzzer(commands.Cog):
             except:
                 """Nothing here"""
         else:
-            await ctx.send("There is already an active round in this server")
+            await ctx.send("There is already an active round in this server", ephemeral = True)
             
 
 
@@ -257,7 +257,7 @@ class question(discord.ui.View):
             await self.updateEmbed(f"<t:{self.timeleftUNIX}:R>",beRed=True)
 
     async def sendquestion(self, ctx,type, choice_type, source, question, answer,speed):
-        self.message = await self.ctx.send(embed = self.embed)
+        self.message = await self.ctx.channel.send(embed = self.embed)
         self.typed_question = ""
 
         self.full_question = question.split("\n")
@@ -308,7 +308,7 @@ class question(discord.ui.View):
                 ephemeral=True)
         if self.BuzzData == "Nobody Buzzed Yet!":
             self.BuzzData = ""
-        stuff = f"**{interaction.user.name}** - "
+        stuff = f"**<@{interaction.user.id}>** - "
         if self.BeingRead:
             stuff += "Interupt - "
             self.progress = False
@@ -356,7 +356,6 @@ class question(discord.ui.View):
                 
 
             else:
-                await interaction.response.defer()
                 await interaction.response.send_message(f"Quick! Send `sci!a [answer]` to provide your answer", ephemeral=True)
                 self.timeleftUNIX += int(len(self.answer)) + 4
                 await self.updateEmbed(f"<t:{self.timeleftUNIX}:R>")
@@ -386,8 +385,6 @@ class question(discord.ui.View):
         try:
             if interaction.author.id == self.author:
                 univ.data.pop(interaction.guild)
-                self.embed.add_field(name="Stopped", value=f"The round has been stopped. Please wait for the question to finish", inline=False)
-                await self.message.edit(embed = self.embed)
             else:
                 await interaction.response.send_message("You are not the owner >:(")   
         except:
