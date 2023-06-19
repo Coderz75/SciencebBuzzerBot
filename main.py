@@ -30,7 +30,7 @@ async def on_command_error(ctx, error):
     if isinstance(error, CommandNotFound):
         return
     user = await client.fetch_user("754532384984137772")
-    embed = discord.Embed(title="ERROR", description= f"```{traceback.format_exception(type(error), error, error.__traceback__)}```",color=0xFF0000)
+    embed = discord.Embed(title="ERROR", description= f"```{''.join(traceback.format_exception(type(error), error, error.__traceback__))}```",color=0xFF0000)
 
     await user.send(embed = embed)
     raise error

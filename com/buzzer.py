@@ -19,6 +19,41 @@ client = commands.Bot(command_prefix = commands.when_mentioned_or('!'), intents=
 async def setup(bot):
 	await bot.add_cog(buzzer(bot))
 
+def get_lb(guild):
+                    scores = []
+                    a = []
+
+                    for key, value in univ.data[guild]["lb"].items():
+                        scores.append(value)
+                    scores.sort(reverse=True)
+                    for i in range(len(scores)):
+                        for key,value in univ.data[guild]["lb"].items():
+                            if scores[i] == value:
+                                a.append(key)
+                    for i in range(3):
+                        a.append("No one")
+                        scores.append(0)
+                    
+                    desc = f"""
+                    :first_place: **<@!{a[0]}>** - **{scores[0]}**
+                    :second_place: **<@!{a[1]}>** - **{scores[1]}**
+                    :third_place: **<@!{a[2]}>** - **{scores[2]}**
+                    """
+                    for i in range(3):
+                        del scores[0]
+                        del a[0]
+
+                    for i in range(len(scores)):
+                        if a[i] != "No one":
+                            desc += f":medal: **<@!{a[i]}>** - **{scores[i]}**\n"
+
+                    embed = discord.Embed(title=f"End, it's over", description=desc, color=0x00FF00)
+                    
+                    embed.set_thumbnail(
+                    url=
+                        "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Twemoji2_1f947.svg/512px-Twemoji2_1f947.svg.png?20170615234944"
+                    )
+                    return embed
 
 class buzzer(commands.Cog):
     """
@@ -49,29 +84,37 @@ class buzzer(commands.Cog):
         Use this in case it says there is an active round even though there is not
         Usage: {}reset
         """
+        embed = get_lb(ctx.guild)
+        embed.set_author(name="Stopped by: " + ctx.author.display_name,
+                            icon_url=ctx.author.avatar)
         try:
             univ.data.pop(ctx.guild)
         except:
             pass
-        await ctx.send("Done!", ephemeral=True)
+        await ctx.send("Round stopped!! (Please note that the final question did not count)", )
+        await ctx.channel.send(embed=embed)
 
     @commands.hybrid_command()
-    async def startround(self, ctx):
+    async def startround(self, ctx, num_questions: int = 20):
         """
         Start a science bowl round!
-        Usage: {}startround
+        Usage: {}startround (number of questions)
         """
+        
         if ctx.guild not in univ.data:
             e = {
                 "channel" : ctx.channel,
                 "buzzData" : "",
                 "lb": {}
             }
+            if num_questions >= 100:
+                await ctx.send("WAYYYYY TOO MANY QUESTIONS MAN")
+                return
             univ.data[ctx.guild] = e
-            await ctx.send("Ok, starting soon!", ephemeral = True)
-            for i in range(20):
+            await ctx.send(f"Ok, starting a round of {num_questions} questions")
+            for i in range(num_questions):
 
-                if ctx.guild not in univ.data:
+                if not (ctx.guild in univ.data):
                     break
                 f = open("questions/questions.json")
                 data = json.load(f)
@@ -81,60 +124,29 @@ class buzzer(commands.Cog):
 
                 univ.data[ctx.guild]["Question"] = question(ctx,i+1, "TOSSUP",str(data['category']), str(data['tossup_format']), str(data['uri']), str(data['tossup_question']), str(data['tossup_answer']),1,ctx.author.id)
                 await univ.data[ctx.guild]["Question"].run()
+                await asyncio.sleep(0.05)
                 try:
                     ans, CorrectMan = await univ.data[ctx.guild]["Question"].cleanup()
-                except: 
-                    """Do nothing"""
-                if CorrectMan != False:
-                    if CorrectMan in univ.data[ctx.guild]["lb"]:
-                        univ.data[ctx.guild]["lb"][CorrectMan] += 4
-                    else:
-                        univ.data[ctx.guild]["lb"][CorrectMan] = 4
+                    if CorrectMan != False:
+                        if CorrectMan in univ.data[ctx.guild]["lb"]:
+                            univ.data[ctx.guild]["lb"][CorrectMan] += 4
+                        else:
+                            univ.data[ctx.guild]["lb"][CorrectMan] = 4
+                except:
+                    break
 
                 await asyncio.sleep(1)
+            else:
+                    embed = get_lb(ctx.guild)
+                    embed.set_author(name="Requested by: " + ctx.author.display_name,
+                            icon_url=ctx.author.avatar)
+                    await ctx.send(embed=embed)
 
-            scores = []
-            a = []
-            try:
-                for key, value in univ.data[ctx.guild]["lb"].items():
-                    scores.append(value)
-                scores.sort(reverse=True)
-                for i in range(len(scores)):
-                    for key,value in univ.data[ctx.guild]["lb"].items():
-                        if scores[i] == value:
-                            a.append(key)
-                for i in range(3):
-                    a.append("No one")
-                    scores.append(0)
-                
-                desc = f"""
-                :first_place: **<@!{a[0]}>** - **{scores[0]}**
-                :second_place: **<@!{a[1]}>** - **{scores[1]}**
-                :third_place: **<@!{a[2]}>** - **{scores[2]}**
-                """
-                for i in range(3):
-                    del scores[0]
-                    del a[0]
 
-                for i in range(len(scores)):
-                    if a[i] != "No one":
-                        desc += f":medal: **<@!{a[i]}>** - **{scores[i]}**\n"
-
-                embed = discord.Embed(title=f"End, it's over", description=desc, color=0x00FF00)
-                embed.set_author(name="Requested by: " + ctx.author.display_name,
-                        icon_url=ctx.author.avatar)
-                embed.set_thumbnail(
-                url=
-                    "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Twemoji2_1f947.svg/512px-Twemoji2_1f947.svg.png?20170615234944"
-                )
-                await ctx.send(embed=embed)
-            except :
-                pass
-
-            try:
-                univ.data.pop(ctx.guild)   
-            except:
-                """Nothing here"""
+                    try:
+                        univ.data.pop(ctx.guild)   
+                    except:
+                        """Nothing here"""
         else:
             await ctx.send("There is already an active round in this server", ephemeral = True)
             
@@ -388,14 +400,17 @@ class question(discord.ui.View):
 
     @discord.ui.button(label = "stop", style = discord.ButtonStyle.red)
     async def stop_button(self, interaction: discord.Interaction, button: discord.ui.button):
+        embed = get_lb(interaction.guild)
+        embed.set_author(name="Stopped by: " + interaction.user.display_name,
+                            icon_url=interaction.user.avatar)
         try:
-            if interaction.author.id == self.author:
-                univ.data.pop(interaction.guild)
-            else:
-                await interaction.response.send_message("You are not the owner >:(")   
+            univ.data.pop(interaction.guild)
         except:
-            """Do nothing"""
+            pass
         await interaction.response.defer()
+        await interaction.channel.send("Stopped!! (Please note that the final question did not count)")
+        await interaction.channel.send(embed=embed)
+
 
 class McButton(discord.ui.Button):
     def __init__(self, lable,author):
