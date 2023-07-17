@@ -4,6 +4,7 @@ from discord.ext import commands
 async def setup(bot):
 	await bot.add_cog(Misc(bot))
 	bot.add_command(hello)
+        
 class buttons(discord.ui.View):
 		def __init__(self, oninteraction,timeout=180):
 			super().__init__(timeout=timeout)
@@ -43,7 +44,7 @@ class Misc(commands.Cog):
 		await t.edit(content = "", embed=embed, view = buttons(embed2))
         
 	@commands.hybrid_command(name="help")
-	async def _help(self, ctx, *, module):
+	async def _help(self, ctx, module = None):
 		"""
 		Shows this message
 		Usage: {}help (command)
@@ -157,7 +158,7 @@ class Misc(commands.Cog):
 		await ctx.send(embed=embed)
 
 	@_help.autocomplete('module')
-	async def q_autocomplete(self, interaction, current):
+	async def help_autocomplete(self, interaction, current):
 		choices = []
 		for command in self.bot.commands:
 			choices.append(str(command))

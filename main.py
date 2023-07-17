@@ -1,4 +1,4 @@
-import discord
+import discord, logging, jishaku
 import os
 from discord.ext import commands
 import univ.vars as univ
@@ -35,5 +35,30 @@ async def on_command_error(ctx, error):
     await user.send(embed = embed)
     raise error
 
+
+from flask import Flask
+from threading import Thread
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return "online"
+
+
+def run():
+    if __name__ == '__main__':
+        app.run(host="0.0.0.0", debug=False)
+
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
+
+
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+
+keep_alive()
 client.run(os.getenv("TOKEN"))
 

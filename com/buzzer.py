@@ -1,16 +1,45 @@
 import discord
 from discord.ext import commands
-import json 
+import json, requests
 import time
 import univ.vars as univ
 import asyncio
 import re
 import random
-from difflib import SequenceMatcher
+import collections
 
-def similar(a, b):
-    return SequenceMatcher(None , a, b).ratio()
+type_of_questions = ["astro","bio","chem","cs","eas","energy","es","gen","math","phy"]
 
+def similarity(string1, string2):
+    string1 = string1.upper()
+    string2 = string2.upper()
+    intersection = collections.Counter(string1) & collections.Counter(string2)
+    union = collections.Counter(string1) | collections.Counter(string2)
+    return sum(intersection.values()) / sum(union.values())
+    
+class GetResponse(discord.ui.Modal, title="Short Response"):
+    answer = discord.ui.TextInput(label='Answer',
+                                  style=discord.TextStyle.short,
+                                  placeholder="Quick! Your answer")
+
+    def __init__(self, view, timeout, author):
+        super().__init__()
+        self.view = view
+        self.a = author
+        self.timeouted = False
+
+    async def on_submit(self, interaction: discord.Interaction):
+        # Do something with user's response
+        fullans = self.answer.value
+        try:
+            if univ.data[interaction.guild]["channel"] == interaction.channel:
+                if univ.data[interaction.guild]["Question"].answering == interaction.user.id:
+                    await univ.data[interaction.guild]["Question"].validate(fullans,interaction.user.id)
+                    await interaction.response.defer()
+                else:
+                    return await interaction.send("You didn't buzz", mention_author=False, ephermal = True)
+        except:
+            return await interaction.send("There is no active round in your server", mention_author=False, ephemeral = True)
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -63,20 +92,48 @@ class buzzer(commands.Cog):
         self.client = bot
 
     @commands.hybrid_command()
-    async def a(self,ctx,*, answer: str):
+    async def q(self,ctx, type: str):
         """
-        Answer a question in the round. (Only if you have buzzed)
-        Usage: {}a [answer]
+        Get a single question, of a subject of your choosing
+        Available types are:
+        astro
+        bio
+        chem
+        cs
+        eas
+        energy
+        es
+        gen
+        math
+        phy
+        Usage: {}q [type]
         """
-        fullans = answer
-        try:
-            if univ.data[ctx.guild]["channel"] == ctx.channel:
-                if univ.data[ctx.guild]["Question"].answering == ctx.author.id:
-                    await univ.data[ctx.guild]["Question"].validate(fullans,ctx.author.id)
-                else:
-                    return await ctx.send("You didn't buzz", mention_author=False, ephermal = True)
-        except:
-            return await ctx.send("There is no active round in your server", mention_author=False, ephermal = True)
+        if type not in type_of_questions:
+            return await ctx.send("That is not a valid question type. See sci!help q for valid question types",ephemeral = True)
+        await ctx.send("Ok... Please wait",ephemeral = True)
+        d = requests.get(f"https://raw.githubusercontent.com/DevNotHackerCorporations/scibowlbot/main/questions/{type}.json")
+        if ctx.guild not in univ.data:
+                univ.data[ctx.guild] = {"channel": ctx.channel}
+                data = d.json()
+                i = random.randint(0,len(data))
+
+                data = json.loads(json.dumps(data[i]))
+                univ.data[ctx.guild]["Question"] = question(ctx,1, "TOSSUP",str(type.upper()), str(data.get('tossup_format')), str(data.get('uri')), str(data.get('tossup_question')), str(data.get('tossup_answer')),1,ctx.author.id)
+                await univ.data[ctx.guild]["Question"].run()
+                await univ.data[ctx.guild]["Question"].cleanup()
+                try:
+                    univ.data.pop(ctx.guild)   
+                except:
+                    """Nothing here"""
+        else:
+            await ctx.send("There is still another question, or round in your server",ephemeral = True)
+    @q.autocomplete('type')
+    async def q_autocomplete(self, interaction, current):
+        return [
+			discord.app_commands.Choice(name=thing, value=thing)
+			for thing in type_of_questions
+			if current.lower() in thing.lower()
+		]
 
     @commands.hybrid_command()
     async def reset(self, ctx):
@@ -84,16 +141,21 @@ class buzzer(commands.Cog):
         Use this in case it says there is an active round even though there is not
         Usage: {}reset
         """
-        embed = get_lb(ctx.guild)
-        embed.set_author(name="Stopped by: " + ctx.author.display_name,
-                            icon_url=ctx.author.avatar)
+        try:
+            embed = get_lb(ctx.guild)
+            embed.set_author(name="Stopped by: " + ctx.author.display_name,
+                                icon_url=ctx.author.avatar)
+        except:
+            pass
         try:
             univ.data.pop(ctx.guild)
         except:
             pass
         await ctx.send("Round stopped!! (Please note that the final question did not count)", )
-        await ctx.channel.send(embed=embed)
-
+        try:
+            await ctx.channel.send(embed=embed)
+        except:
+            pass
     @commands.hybrid_command()
     async def startround(self, ctx, num_questions: int = 20):
         """
@@ -116,11 +178,12 @@ class buzzer(commands.Cog):
 
                 if not (ctx.guild in univ.data):
                     break
-                f = open("questions/questions.json")
-                data = json.load(f)
-                i = random.randint(0,len(data["questions"]))
+                type = random.choice(type_of_questions)
+                d = requests.get(f"https://raw.githubusercontent.com/DevNotHackerCorporations/scibowlbot/main/questions/{type}.json")
+                data = d.json()
+                i = random.randint(0,len(data))
 
-                data = json.loads(json.dumps(data['questions'][i]))
+                data = json.loads(json.dumps(data[i]))
 
                 univ.data[ctx.guild]["Question"] = question(ctx,i+1, "TOSSUP",str(data['category']), str(data['tossup_format']), str(data['uri']), str(data['tossup_question']), str(data['tossup_answer']),1,ctx.author.id)
                 await univ.data[ctx.guild]["Question"].run()
@@ -166,7 +229,7 @@ class question(discord.ui.View):
         self.answer = answer
         self.speed = speed
         self.view = self
-        self.embed = discord.Embed(title=f"Loading", description=f"Loading", color=0xFF5733)
+        self.embed = discord.Embed(title="Loading", description="Loading", color=0xFF5733)
         self.BeingRead = True
         self.answered = False
         self.BuzzData = "Nobody Buzzed Yet!"
@@ -260,7 +323,12 @@ class question(discord.ui.View):
         
     async def validate(self,ans,author):
         self.BuzzData += ans+ " - "
-        if ans.upper() in self.answer_list or similar(ans,self.answer_list[1]) > 0.5:
+        correct = False
+        for e in self.answer_list:
+            if similarity(e,ans) > 0.5:
+                correct = True
+                break
+        if correct:
             self.BuzzData += "**Correct!**"
             self.answered = True 
             self.CorrectMan = author
@@ -300,7 +368,7 @@ class question(discord.ui.View):
             
             await asyncio.sleep(speed)
 
-            self.typed_question += self.full_question[i] + "\n" 
+            self.typed_question += self.full_question[i] + "\n"
 
             await self.updateEmbed("Question is being read")
             i+=1
@@ -374,7 +442,9 @@ class question(discord.ui.View):
                 
 
             else:
-                await interaction.response.send_message(f"Quick! Send `sci!a [answer]` to provide your answer", ephemeral=True)
+                await interaction.response.send_modal(
+                GetResponse(self, 4,
+                            self.author))
                 self.timeleftUNIX += int(len(self.answer)) + 4
                 await self.updateEmbed(f"<t:{self.timeleftUNIX}:R>")
 
@@ -393,24 +463,6 @@ class question(discord.ui.View):
         else:
             self.timeleftUNIX + 20
             await self.updateEmbed(f"{int(time.time() + 20)}")
-        
-
-
-
-
-    @discord.ui.button(label = "stop", style = discord.ButtonStyle.red)
-    async def stop_button(self, interaction: discord.Interaction, button: discord.ui.button):
-        embed = get_lb(interaction.guild)
-        embed.set_author(name="Stopped by: " + interaction.user.display_name,
-                            icon_url=interaction.user.avatar)
-        try:
-            univ.data.pop(interaction.guild)
-        except:
-            pass
-        await interaction.response.defer()
-        await interaction.channel.send("Stopped!! (Please note that the final question did not count)")
-        await interaction.channel.send(embed=embed)
-
 
 class McButton(discord.ui.Button):
     def __init__(self, lable,author):
