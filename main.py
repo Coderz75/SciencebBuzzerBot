@@ -27,7 +27,8 @@ async def setup_hook(self):
 
 @client.event
 async def on_command_error(ctx, error):
-    if isinstance(error, CommandNotFound):
+    if isinstance(error, CommandNotFound) or isinstance(error, discord.errors.Forbidden):
+        await ctx.send("I don't have permissions to run this command")
         return
     user = await client.fetch_user("754532384984137772")
     embed = discord.Embed(title="ERROR", description= f"```{''.join(traceback.format_exception(type(error), error, error.__traceback__))}```",color=0xFF0000)
