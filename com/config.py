@@ -1,4 +1,5 @@
 import discord
+import univ.vars as univ
 from discord.ext import commands
 
 async def setup(bot):
@@ -42,7 +43,24 @@ class Misc(commands.Cog):
 		embed2.add_field(name = "For Nerds", value = f"Your message was created at {ctx.message.created_at} \nOur message was created at the time {t.created_at}, with the gap being {ms} ms \nOur internet delay time is {round(self.client.latency * 1000)} ms\nMy lag should be about {ms - round(self.client.latency * 1000)} ms")
 
 		await t.edit(content = "", embed=embed, view = buttons(embed2))
-        
+
+	@commands.hybrid_command(name="servers")
+	async def _servers(self, ctx):
+		"""
+		Tells You how much servers I am in!
+        Usage: {}servers
+		"""
+		await ctx.send(f"I'm in {len(ctx.bot.guilds)} servers")
+
+	@commands.hybrid_command(name="active_rounds")
+	async def _active_rounds(self, ctx):
+		"""
+  		Tells you how much active rounds there are at the moment.
+		Usage: {}active_rounds
+  		"""
+		await ctx.send(f"There are {len(univ.data) - 1} active rounds right now!")
+		print(univ.data)
+	
 	@commands.hybrid_command(name="help")
 	async def _help(self, ctx, module = None):
 		"""

@@ -37,9 +37,9 @@ class GetResponse(discord.ui.Modal, title="Short Response"):
                     await univ.data[interaction.guild]["Question"].validate(fullans,interaction.user.id)
                     await interaction.response.defer()
                 else:
-                    return await interaction.send("You didn't buzz", mention_author=False, ephermal = True)
+                    return await interaction.channel.send("You didn't buzz", mention_author=False, ephermal = True)
         except:
-            return await interaction.send("There is no active round in your server", mention_author=False, ephemeral = True)
+            return await interaction.channel.send("There is no active round in your server", mention_author=False, ephemeral = True)
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -109,7 +109,7 @@ class buzzer(commands.Cog):
         Usage: {}q [type]
         """
         if type not in type_of_questions:
-            return await ctx.send("That is not a valid question type. See sci!help q for valid question types",ephemeral = True)
+            return await ctx.send("That is not a valid question type. See `sci!help q` for valid question types",ephemeral = True)
         await ctx.send("Ok... Please wait",ephemeral = True)
         d = requests.get(f"https://raw.githubusercontent.com/DevNotHackerCorporations/scibowlbot/main/questions/{type}.json")
         if ctx.guild not in univ.data:
