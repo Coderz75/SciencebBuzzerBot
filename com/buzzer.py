@@ -41,9 +41,6 @@ class GetResponse(discord.ui.Modal, title="Short Response"):
         except:
             return await interaction.channel.send("There is no active round in your server", mention_author=False, ephemeral = True)
 
-intents = discord.Intents.default()
-intents.message_content = True
-client = commands.Bot(command_prefix = commands.when_mentioned_or('!'), intents=intents, description = "Buzz", help_command=None, activity = discord.Game(name="!help"))
 
 async def setup(bot):
 	await bot.add_cog(buzzer(bot))
@@ -110,9 +107,9 @@ class buzzer(commands.Cog):
         """
         if type not in type_of_questions:
             return await ctx.send("That is not a valid question type. See `sci!help q` for valid question types",ephemeral = True)
-        await ctx.send("Ok... Please wait",ephemeral = True)
         d = requests.get(f"https://raw.githubusercontent.com/DevNotHackerCorporations/scibowlbot/main/questions/{type}.json")
         if ctx.guild not in univ.data:
+                await ctx.send(f"Loading question of type: {type}")
                 univ.data[ctx.guild] = {"channel": ctx.channel}
                 data = d.json()
                 i = random.randint(0,len(data))
@@ -126,7 +123,7 @@ class buzzer(commands.Cog):
                 except:
                     """Nothing here"""
         else:
-            await ctx.send("There is still another question, or round in your server",ephemeral = True)
+            await ctx.send("There is still another question, or round in your server")
     @q.autocomplete('type')
     async def q_autocomplete(self, interaction, current):
         return [
@@ -291,7 +288,7 @@ class question(discord.ui.View):
             self.embed = discord.Embed(title=f"{self.number}) {self.category} {self.type} {self.choice_type}", description=f"(SOURCE: {self.source} \nPress buzz to buzz)", color=0xFF0000)
         else:
             self.embed = discord.Embed(title=f"{self.number}) {self.category} {self.type} {self.choice_type}", description=f"(SOURCE: {self.source} \nPress buzz to buzz)", color=0xFF5733)
-        self.embed.add_field(name="Question", value=f"{self.typed_question}", inline=False)
+        self.embed.add_field(name="Question", value=f"{self.typed_question}" if not showans else f"{self.question}", inline=False)
         self.embed.add_field(name="Buzz's:", value=f"{self.BuzzData}", inline=False)
         self.embed.add_field(name="TimeLeft", value=f"{Timeleft}.", inline=True)
         if showans:

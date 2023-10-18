@@ -44,6 +44,7 @@ class Misc(commands.Cog):
 
 		await t.edit(content = "", embed=embed, view = buttons(embed2))
 
+	
 	@commands.hybrid_command(name="servers")
 	async def _servers(self, ctx):
 		"""
@@ -77,11 +78,7 @@ class Misc(commands.Cog):
 				return False
 
 		if not module:
-			try:
-				owner = ctx.guild.get_member(owner).mention
-
-			except:
-				owner = 712426753238237274
+			
 
 			embed = discord.Embed(
 				title="Help",
@@ -112,7 +109,7 @@ class Misc(commands.Cog):
 			embed.add_field(
 				name='About',
 				value=
-				f"{ctx.bot.get_user(ctx.bot.user.id)} is devoloped by {owner}",
+				f"{ctx.bot.get_user(ctx.bot.user.id)} is devoloped by <@{owner}>",
 				inline=False)
 		else:
 
