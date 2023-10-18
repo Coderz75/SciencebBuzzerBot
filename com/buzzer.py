@@ -302,7 +302,6 @@ class question(discord.ui.View):
             self.BuzzData += "**Correct!**"
             self.answered = True 
             self.CorrectMan = ans.author
-            await self.updateEmbed("Question has expired")
         else:
             self.BuzzData += "**Incorrect**\n"
             self.progress = True
@@ -314,7 +313,7 @@ class question(discord.ui.View):
                 self.remove_item(item)
 
         if self.answered:
-            await self.updateEmbed("Question has expired")
+            """yay?"""
         else:
             await self.updateEmbed(f"<t:{self.timeleftUNIX}:R>",beRed= True)
         
@@ -335,7 +334,7 @@ class question(discord.ui.View):
             self.answering = False
             
         if self.answered:
-            await self.updateEmbed("Question has expired")
+            """"""
         else:
             await self.updateEmbed(f"<t:{self.timeleftUNIX}:R>",beRed=True)
 
@@ -376,8 +375,8 @@ class question(discord.ui.View):
         await self.updateEmbed(f"<t:{self.timeleftUNIX}:R>")
 
         while self.timeleftUNIX > time.time() and not self.answered:
-            await asyncio.sleep(0.1)
-
+            await asyncio.sleep(0.01)
+        
         await self.updateEmbed("Time over")
         self.embed.add_field(name = "Answer", value = f"It was: \n{answer}", inline = False)
         await self.message.edit(embed=self.embed)
